@@ -131,6 +131,14 @@ escape_string = "0.1.2"
 regex = "1.12"
 testresult = "0.4.1"
 
+[workspace]
+# `tests/wasm/` is an independent crate exclusively for
+# `wasm-pack test --node` runs. Keeping it out of the main crate's
+# `[dev-dependencies]` avoids dragging native-only test deps (such as
+# `proptest` → `rusty-fork` → `wait-timeout`) into the wasm32 dep
+# graph.
+members = ["tests/wasm"]
+
 [features]
 default = ["bzip2"]
 

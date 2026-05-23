@@ -1,0 +1,16 @@
+[package]
+name = "rpgp-wasm-tests"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Wasm runtime smoke-tests for rpgp — exercises codepaths (keygen, Timestamp::now()) that pure `cargo check` cannot catch."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pgp = { path = "../..", default-features = false, features = ["wasm"] }
+rand = "0.8"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
