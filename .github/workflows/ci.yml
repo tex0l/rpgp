@@ -191,6 +191,28 @@ jobs:
         command: check
         args: --target wasm32-unknown-unknown --no-default-features --features wasm,draft-pqc
 
+  test_wasm:
+    name: Run wasm tests (Node)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust + wasm32 target
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: wasm32-unknown-unknown
+
+    - name: Install wasm-pack
+      run: curl -fsSL https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
+
+    # The sub-crate at `tests/wasm/` exists purely to keep this build's
+    # dep graph self-contained — the main `pgp` crate's
+    # `[dev-dependencies]` (proptest, criterion, rayon, …) include
+    # crates that do not compile for `wasm32-unknown-unknown`.
+    - name: wasm-pack test (node)
+      working-directory: tests/wasm
+      run: wasm-pack test --node
+
   check_fmt:
     name: Checking fmt
     runs-on: ubuntu-latest
