@@ -1,0 +1,23 @@
+[package]
+name = "rpgp-wasm-tests"
+version = "0.0.0"
+edition = "2021"
+publish = false
+# Match the workspace license — required by the `cargo deny` job's
+# `licenses` check, which runs over every workspace member.
+license = "MIT OR Apache-2.0"
+description = "Wasm runtime smoke-tests for rpgp — exercises codepaths (keygen, Timestamp::now()) that pure `cargo check` cannot catch."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pgp = { path = "../..", default-features = false, features = ["wasm"] }
+# Pin to the same floor the main `pgp` crate uses — otherwise
+# `cargo check -Z direct-minimal-versions` (the `minimal_versions` CI
+# job) resolves to `rand 0.8.0` and conflicts with `pgp`'s
+# `rand = "0.8.6"`.
+rand = "0.8.6"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"

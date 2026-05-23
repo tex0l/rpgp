@@ -52,10 +52,27 @@ pub enum TimestampError {
 
 impl Timestamp {
     /// Returns the current timestamp.
+    ///
+    /// On `wasm32-unknown-unknown`, `std::time::SystemTime::now()`
+    /// panics with `"time not implemented on this platform"` — the
+    /// stdlib has no clock for that target. Under the `wasm` cargo
+    /// feature we route through [`web-time`](https://crates.io/crates/web-time)
+    /// instead, which calls into JS's `Date.now()` via wasm-bindgen.
+    /// All other targets keep the std path verbatim.
     pub fn now() -> Self {
-        SystemTime::now()
+        #[cfg(all(target_arch = "wasm32", target_os = "unknown", feature = "wasm"))]
+        let duration = web_time::SystemTime::now()
+            .duration_since(web_time::UNIX_EPOCH)
+            .expect("now is before the unix epoch");
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown", feature = "wasm")))]
+        let duration = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("now is before the unix epoch");
+        let secs: u32 = duration
+            .as_secs()
             .try_into()
-            .expect("now is too far into the future")
+            .expect("now is too far into the future");
+        Self(secs)
     }
 
     /// Returns the number of seconds (ignoring leaps) since the [`UNIX_EPOCH`].

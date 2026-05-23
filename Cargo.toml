@@ -86,6 +86,13 @@ subtle = "2.6.1"
 twofish = "0.7"
 zeroize = { version = "1.8", features = ["zeroize_derive"] }
 getrandom = { version = "0.2", optional = true }
+# `std::time::SystemTime::now()` panics on `wasm32-unknown-unknown`
+# because the stdlib has no time syscall for that platform. `web-time`
+# is the standard drop-in replacement: native targets re-export
+# `std::time::*`, `wasm32` routes through `Date.now()` via
+# wasm-bindgen. Only pulled in under the `wasm` feature so non-wasm
+# users carry no extra deps.
+web-time = { version = "1", optional = true }
 hkdf = "0.12.4"
 aes-gcm = "0.10.3"
 eax = "0.5.0"
@@ -131,13 +138,21 @@ escape_string = "0.1.2"
 regex = "1.12"
 testresult = "0.4.1"
 
+[workspace]
+# `tests/wasm/` is an independent crate exclusively for
+# `wasm-pack test --node` runs. Keeping it out of the main crate's
+# `[dev-dependencies]` avoids dragging native-only test deps (such as
+# `proptest` → `rusty-fork` → `wait-timeout`) into the wasm32 dep
+# graph.
+members = ["tests/wasm"]
+
 [features]
 default = ["bzip2"]
 
 # See README.md for features documentation
 bzip2 = ["dep:bzip2"]
 asm = ["dep:sha1-asm", "sha1/asm", "sha2/asm", "md-5/asm"]
-wasm = ["getrandom", "getrandom/js"]
+wasm = ["getrandom", "getrandom/js", "dep:web-time"]
 
 large-rsa = []
 malformed-artifact-compat = []
